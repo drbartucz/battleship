@@ -317,6 +317,8 @@ def load_strategies(folders):
 
     for (folder, number, path), file_is_stuck in zip(paths, stuck):
         label = folder.name + '/' + path.name
+        if folder.parent.name == 'examples':        # a folder inside examples is still examples
+            label = 'examples/' + label
         if file_is_stuck:
             problems.append((label, 'the code ran for more than {} seconds without finishing - '
                              'look for a loop that never ends'.format(STUCK_AFTER_SECONDS)))

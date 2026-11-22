@@ -104,6 +104,9 @@ tougher, and how it works is a secret:
 | `recursion` | Shoots at the middle of the board, then the middle of each quarter, then each quarter of those, and so on |
 | `secret`    | That would be telling. Can you beat it? Can you work out what it does by watching it play? |
 
+There is one more opponent. Mr. Bartucz has a secret strategy of his own, which
+won a previous tournament. He will reveal it on Monday.
+
 ### Placing your own ships (optional)
 
 If you do nothing, your ships are placed at random every game. To choose where
