@@ -105,7 +105,7 @@ tougher, and how it works is a secret:
 | `secret`    | That would be telling. Can you beat it? Can you work out what it does by watching it play? |
 
 There is one more opponent. Mr. Bartucz has a secret strategy of his own, which
-won a previous tournament. He will reveal it on Monday.
+you can play one-v-one, but will not be part of the tournament. He will reveal it on Monday.
 
 ### Placing your own ships (optional)
 
