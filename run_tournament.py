@@ -624,11 +624,29 @@ def play_versus(players, names, games, speed, live):
     second = first and (find_player(players, names[1]) if len(names) == 2 else home_player(players, first))
     if not first or not second:
         return 1
-    if first is second:
-        print('\nA strategy cannot play against itself.')
-        return 1
     if len(names) == 1:
         first, second = second, first       # "your" strategy goes on the left
+    return play_pair(first, second, games, speed, live)
+
+
+def fresh_copy(player, name=None):
+    '''The same strategy again, with its own variables and a clean score sheet.'''
+    module = {'__name__': 'strategy_copy', '__file__': player.file}
+    with contextlib.redirect_stdout(io.StringIO()):
+        exec(compile(player.source, player.file, 'exec'), module)
+    place_ships = module.get('place_ships')
+    return Player(name or player.name, player.file, module['take_shot'],
+                  place_ships if callable(place_ships) else None, player.source)
+
+
+def play_pair(first, second, games, speed, live):
+    '''Play a series between two strategies. A strategy may play against itself.'''
+    try:
+        twin_name = '{} (copy)'.format(first.name) if first is second else None
+        first, second = fresh_copy(first), fresh_copy(second, twin_name)
+    except Exception as error:
+        print('\nCould not start the game: {}'.format(describe_error(error)))
+        return 1
     pause = 1 / speed if speed > 0 else 0
     order = random.choice([0, 1])
 
@@ -661,6 +679,63 @@ def play_versus(players, names, games, speed, live):
             print('   {} needed {:.1f} shots on average to win'.format(player.name, player.shots_per_win))
     print_notes('PROBLEMS DURING PLAY:', trouble([first, second]))
     return 0
+
+
+def ask(keyboard, question):
+    '''Ask on the real keyboard. Returns None if the user presses Ctrl+C.'''
+    sys.stdin = keyboard
+    try:
+        return input(question).strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
+    finally:
+        sys.stdin = io.StringIO('')
+
+
+def ask_number(keyboard, question, highest, default=None):
+    '''Ask for a whole number from 1 to highest. Returns None to go back.'''
+    while True:
+        answer = ask(keyboard, question)
+        if answer is None or (answer == '' and default is None):
+            return None
+        if answer == '' and default is not None:
+            return default
+        if answer.isdigit() and 1 <= int(answer) <= highest:
+            return int(answer)
+        print('   Please type a number from 1 to {}.'.format(highest))
+
+
+def menu(keyboard, players, tournament_games, games, speed, live):
+    '''The choices shown when the program is started without any options.
+    Returns True to play the tournament, False to exit.'''
+    # Strategies in examples/.hidden can be picked for one-v-one, but they
+    # are not part of the tournament.
+    hidden = HERE / 'examples' / '.hidden'
+    extras = load_strategies([hidden])[0] if hidden.is_dir() else []
+    taken = {simplify(p.name) for p in players}
+    listed = sorted(players + [p for p in extras if simplify(p.name) not in taken],
+                    key=lambda p: p.name.casefold())
+    while True:
+        print('\nWhat would you like to do?')
+        print('  1. Play one-v-one')
+        print('  2. Play an entire tournament ({} games)'.format(tournament_games))
+        print('  3. Exit')
+        choice = ask_number(keyboard, 'Type 1, 2 or 3 and press Enter: ', 3)
+        if choice in (None, 3):
+            return False
+        if choice == 2:
+            return True
+
+        print('\nThe strategies:')
+        for number, player in enumerate(listed, 1):
+            print('  {:>2}. {}'.format(number, player.name))
+        print('(Press Enter without a number to go back. A strategy can play against itself.)')
+        first = ask_number(keyboard, 'Number of the first strategy: ', len(listed))
+        second = first and ask_number(keyboard, 'Number of the second strategy: ', len(listed))
+        how_many = second and ask_number(keyboard, 'How many games? (Enter for {}): '.format(games), 1000, games)
+        if how_many:
+            play_pair(listed[first - 1], listed[second - 1], how_many, speed, live)
 
 
 class Mirror:
@@ -742,15 +817,13 @@ def main():
                 for pair in itertools.combinations(players, 2) for game in range(GAMES_PER_PAIR)]
     random.shuffle(schedule)
     results_path = HERE / RESULTS_FILENAME
-    if live and not args.yes:
-        try:
-            sys.stdin = keyboard
-            input('\nPress Enter to play {} games (or Ctrl+C to stop) '.format(len(schedule)))
-        except (EOFError, KeyboardInterrupt):
-            print()
+    if live and len(sys.argv) == 1:
+        # Started without any options: offer the choices.
+        if not menu(keyboard, players, len(schedule), 1, args.speed, live):
+            return 0
+    elif live and not args.yes:
+        if ask(keyboard, '\nPress Enter to play {} games (or Ctrl+C to stop) '.format(len(schedule))) is None:
             return 1
-        finally:
-            sys.stdin = io.StringIO('')
     if live:
         start_screen()
     else:

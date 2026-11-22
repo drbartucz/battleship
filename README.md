@@ -121,7 +121,20 @@ Run your own file to check that it returns sensible shots:
 python strategies/maria_and_sam.py
 ```
 
-Watch one game against an example, with both boards on screen:
+Then start the tournament program:
+
+```
+python run_tournament.py
+```
+
+It checks the files and gives you three choices:
+
+1. **Play one-v-one.** Pick any two strategies from a numbered list and watch
+   them play with both boards on screen. A strategy can play against itself.
+2. **Play an entire tournament** against the demo and all the examples.
+3. **Exit.**
+
+You can also skip the choices and go straight to one game against an example:
 
 ```
 python run_tournament.py --versus rando
@@ -136,12 +149,6 @@ hit yet, so you can watch your strategy just miss them. Some useful extras:
 | `python run_tournament.py --versus rando --speed 0`  | As fast as possible                       |
 | `python run_tournament.py --versus rando --games 20` | A series of 20 games                      |
 | `python run_tournament.py --versus rando checkers`   | Any two strategies, by name               |
-
-Then run a practice tournament against the demo and all the examples:
-
-```
-python run_tournament.py
-```
 
 If something is wrong with your file, the tournament tells you what before it
 starts. Afterwards it lists any wasted shots, and `results.txt` has the full
@@ -172,7 +179,7 @@ Download the students' files from the LMS and drop them all into the
 | `python run_tournament.py --no-examples --seconds 120` | Same, with the leaderboard stretched to about two minutes |
 | `python run_tournament.py --no-examples --watch` | Same, showing both boards for every game             |
 | `python run_tournament.py --versus "Name" "Other Name"` | One game between two named strategies         |
-| `python run_tournament.py`                       | Practice: `strategies` plus `examples`               |
+| `python run_tournament.py`                       | Practice: `strategies` plus `examples`, starting with the choice of one-v-one or a tournament |
 
 - `--watch` shows every shot of every game, so it is slow: thirty students is
   4,350 games. Use `--speed 0` for the fastest display, or `--games 2` for a
